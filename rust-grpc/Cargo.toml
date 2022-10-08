@@ -6,12 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "client"
-path = "src/client.rs"
+name = "client_unary"
+path = "src/unary/client.rs"
 
 [[bin]]
-name = "server"
-path = "src/server.rs"
+name = "server_unary"
+path = "src/unary/server.rs"
+
+[[bin]]
+name = "client_streaming"
+path = "src/streaming/client.rs"
+
+[[bin]]
+name = "server_streaming"
+path = "src/streaming/server.rs"
 
 [dependencies]
 tokio = {version = "1.21.2", features = ["rt-multi-thread"]}

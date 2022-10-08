@@ -1,6 +1,6 @@
 fn main() {
-    let proto_files = &["./proto/pingpong.proto"];
-    // let proto_files = &["../proto/pingpong.proto"];
+    let proto_files = &["./proto/echo_unary.proto", "./proto/echo_streaming.proto"];
+
     let dirs = &["."];
     tonic_build::configure()
         .build_server(true)

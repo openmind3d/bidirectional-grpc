@@ -1,18 +1,18 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Message {
     #[prost(string, tag="1")]
-    pub r#type: ::prost::alloc::string::String,
+    pub data: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
-pub mod ping_pong_service_client {
+pub mod echo_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
     use tonic::codegen::http::Uri;
     #[derive(Debug, Clone)]
-    pub struct PingPongServiceClient<T> {
+    pub struct EchoClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl PingPongServiceClient<tonic::transport::Channel> {
+    impl EchoClient<tonic::transport::Channel> {
         /// Attempt to create a new client by connecting to a given endpoint.
         pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
         where
@@ -23,7 +23,7 @@ pub mod ping_pong_service_client {
             Ok(Self::new(conn))
         }
     }
-    impl<T> PingPongServiceClient<T>
+    impl<T> EchoClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
         T::Error: Into<StdError>,
@@ -41,7 +41,7 @@ pub mod ping_pong_service_client {
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
-        ) -> PingPongServiceClient<InterceptedService<T, F>>
+        ) -> EchoClient<InterceptedService<T, F>>
         where
             F: tonic::service::Interceptor,
             T::ResponseBody: Default,
@@ -55,7 +55,7 @@ pub mod ping_pong_service_client {
                 http::Request<tonic::body::BoxBody>,
             >>::Error: Into<StdError> + Send + Sync,
         {
-            PingPongServiceClient::new(InterceptedService::new(inner, interceptor))
+            EchoClient::new(InterceptedService::new(inner, interceptor))
         }
         /// Compress requests with the given encoding.
         ///
@@ -72,7 +72,7 @@ pub mod ping_pong_service_client {
             self.inner = self.inner.accept_compressed(encoding);
             self
         }
-        pub async fn ping(
+        pub async fn echo_streaming(
             &mut self,
             request: impl tonic::IntoStreamingRequest<Message = super::Message>,
         ) -> Result<
@@ -90,38 +90,38 @@ pub mod ping_pong_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/pingpong.PingPongService/Ping",
+                "/echo_streaming.Echo/EchoStreaming",
             );
             self.inner.streaming(request.into_streaming_request(), path, codec).await
         }
     }
 }
 /// Generated server implementations.
-pub mod ping_pong_service_server {
+pub mod echo_server {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
-    ///Generated trait containing gRPC methods that should be implemented for use with PingPongServiceServer.
+    ///Generated trait containing gRPC methods that should be implemented for use with EchoServer.
     #[async_trait]
-    pub trait PingPongService: Send + Sync + 'static {
-        ///Server streaming response type for the Ping method.
-        type PingStream: futures_core::Stream<
+    pub trait Echo: Send + Sync + 'static {
+        ///Server streaming response type for the EchoStreaming method.
+        type EchoStreamingStream: futures_core::Stream<
                 Item = Result<super::Message, tonic::Status>,
             >
             + Send
             + 'static;
-        async fn ping(
+        async fn echo_streaming(
             &self,
             request: tonic::Request<tonic::Streaming<super::Message>>,
-        ) -> Result<tonic::Response<Self::PingStream>, tonic::Status>;
+        ) -> Result<tonic::Response<Self::EchoStreamingStream>, tonic::Status>;
     }
     #[derive(Debug)]
-    pub struct PingPongServiceServer<T: PingPongService> {
+    pub struct EchoServer<T: Echo> {
         inner: _Inner<T>,
         accept_compression_encodings: EnabledCompressionEncodings,
         send_compression_encodings: EnabledCompressionEncodings,
     }
     struct _Inner<T>(Arc<T>);
-    impl<T: PingPongService> PingPongServiceServer<T> {
+    impl<T: Echo> EchoServer<T> {
         pub fn new(inner: T) -> Self {
             Self::from_arc(Arc::new(inner))
         }
@@ -155,9 +155,9 @@ pub mod ping_pong_service_server {
             self
         }
     }
-    impl<T, B> tonic::codegen::Service<http::Request<B>> for PingPongServiceServer<T>
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for EchoServer<T>
     where
-        T: PingPongService,
+        T: Echo,
         B: Body + Send + 'static,
         B::Error: Into<StdError> + Send + 'static,
     {
@@ -173,14 +173,13 @@ pub mod ping_pong_service_server {
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             let inner = self.inner.clone();
             match req.uri().path() {
-                "/pingpong.PingPongService/Ping" => {
+                "/echo_streaming.Echo/EchoStreaming" => {
                     #[allow(non_camel_case_types)]
-                    struct PingSvc<T: PingPongService>(pub Arc<T>);
-                    impl<
-                        T: PingPongService,
-                    > tonic::server::StreamingService<super::Message> for PingSvc<T> {
+                    struct EchoStreamingSvc<T: Echo>(pub Arc<T>);
+                    impl<T: Echo> tonic::server::StreamingService<super::Message>
+                    for EchoStreamingSvc<T> {
                         type Response = super::Message;
-                        type ResponseStream = T::PingStream;
+                        type ResponseStream = T::EchoStreamingStream;
                         type Future = BoxFuture<
                             tonic::Response<Self::ResponseStream>,
                             tonic::Status,
@@ -190,7 +189,9 @@ pub mod ping_pong_service_server {
                             request: tonic::Request<tonic::Streaming<super::Message>>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
-                            let fut = async move { (*inner).ping(request).await };
+                            let fut = async move {
+                                (*inner).echo_streaming(request).await
+                            };
                             Box::pin(fut)
                         }
                     }
@@ -199,7 +200,7 @@ pub mod ping_pong_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = PingSvc(inner);
+                        let method = EchoStreamingSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -226,7 +227,7 @@ pub mod ping_pong_service_server {
             }
         }
     }
-    impl<T: PingPongService> Clone for PingPongServiceServer<T> {
+    impl<T: Echo> Clone for EchoServer<T> {
         fn clone(&self) -> Self {
             let inner = self.inner.clone();
             Self {
@@ -236,7 +237,7 @@ pub mod ping_pong_service_server {
             }
         }
     }
-    impl<T: PingPongService> Clone for _Inner<T> {
+    impl<T: Echo> Clone for _Inner<T> {
         fn clone(&self) -> Self {
             Self(self.0.clone())
         }
@@ -246,7 +247,7 @@ pub mod ping_pong_service_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: PingPongService> tonic::server::NamedService for PingPongServiceServer<T> {
-        const NAME: &'static str = "pingpong.PingPongService";
+    impl<T: Echo> tonic::server::NamedService for EchoServer<T> {
+        const NAME: &'static str = "echo_streaming.Echo";
     }
 }

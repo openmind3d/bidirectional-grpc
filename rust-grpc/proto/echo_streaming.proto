@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package echo_streaming;
+
+service Echo {
+    rpc EchoStreaming(stream Message) returns (stream Message) {}
+}
+
+message Message {
+    string data = 1;
+}
