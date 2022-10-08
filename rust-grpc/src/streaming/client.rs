@@ -8,17 +8,11 @@ use tokio_stream::StreamExt;
 async fn main() {
     let mut client = EchoClient::connect("http://[::1]:8000").await.unwrap();
 
-    // let request = tonic::Request::new(Message {
-    //     data: "test".to_string(),
-    // });
-
     let iter = tokio_stream::iter(1..usize::MAX).map(|i| Message {
         data: format!("msg {}", i),
     });
 
     let input_stream = iter.take(10);
-
-    tokio::spawn(async move {});
 
     let response = client.echo_streaming(input_stream).await.unwrap();
 

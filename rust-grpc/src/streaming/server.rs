@@ -7,7 +7,7 @@ use proto::{
 };
 
 use futures::Stream;
-use std::{error::Error, pin::Pin};
+use std::pin::Pin;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 use tonic::{transport::Server, Request, Response, Status, Streaming};
