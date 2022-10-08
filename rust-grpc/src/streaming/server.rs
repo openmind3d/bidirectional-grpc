@@ -8,7 +8,7 @@ use proto::{
 
 use futures::Stream;
 use std::{error::Error, pin::Pin};
-use tokio::sync::mpsc;
+use tokio::sync::mpsc::{self, Receiver, Sender};
 use tokio_stream::{wrappers::ReceiverStream, StreamExt};
 use tonic::{transport::Server, Request, Response, Status, Streaming};
 
@@ -27,8 +27,12 @@ impl Echo for MyEchoServer {
         &self,
         req: Request<Streaming<Message>>,
     ) -> EchoResult<Self::EchoStreamingStream> {
+        println!("new cllient");
+
         let mut input_stream = req.into_inner();
-        let (tx, rx) = mpsc::channel(128);
+        let tx: Sender<Result<Message, Status>>;
+        let rx: Receiver<Result<Message, Status>>;
+        (tx, rx) = mpsc::channel(128);
 
         tokio::spawn(async move {
             while let Some(result) = input_stream.next().await {
@@ -36,36 +40,25 @@ impl Echo for MyEchoServer {
                     Ok(message) => {
                         println!("Have message {}", message.data);
 
-                        tx.send(Message {
-                            data: "some".to_string(),
-                        })
-                        .await
-                        .unwrap();
+                        if let Err(e) = tx
+                            .send(Ok(Message {
+                                data: "test".to_string(),
+                            }))
+                            .await
+                        {
+                            eprintln!("failed send to client {}", e);
+                        }
+
+                        // tx.send(Message {
+                        //     data: "some".to_string(),
+                        // })
+                        // .await
+                        // .unwrap();
                     }
-                    Err(e) => {}
+                    Err(e) => {
+                        eprintln!("error: {}", e);
+                    }
                 }
-                // match result {
-                //     Ok(value) => tx
-                //         .send(Message {
-                //             data: "some".to_string(),
-                //         })
-                //         .await
-                //         .expect("working rx"),
-
-                //     Err(err) => {
-                //         if let Some(io_err) = match_for_io_error(&err) {
-                //             if io_err.kind() == ErrorKind::BrokenPipe {
-                //                 eprintln!("\tclient disconnected: broken pipe");
-                //                 break;
-                //             }
-                //         }
-
-                //         match tx.send(Err(err)).await {
-                //             Ok(_) => (),
-                //             Err(_err) => break,
-                //         }
-                //     }
-                // }
             }
         });
 
